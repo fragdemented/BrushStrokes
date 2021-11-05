@@ -64,30 +64,30 @@ function setup() {
     let pb = img.pixels[i + 2];
     let pa = img.pixels[i + 3];
     vDebug = i;
-    if (i%(brushSize) == 0) {makeArray(px,py,pr,pg,pb,pa);}
+    if (i%(brushSize) == 0) {makeArray(px,py,pr,pg,pb,pa);} // Send the pixels to an array. Skip some based on the brush size to lower the render time.
   }
-  //image(img,0,0);
-  arrTotal = arr.length;
-  tStart = d.getTime();
+  arrTotal = arr.length; // get the length of the resulting array for calculations later
+  tStart = d.getTime(); // mark the start of the render
 }
 
 function draw() {
-  //background(255);
+  //background(255); // optional background color.
   pStatus.elt.innerHTML = "Processing " + fileName + " " + 
     Math.round((1 - (arr.length/arrTotal)) * 100) + "% " + 
-    "(" + (arrTotal - arr.length) + "/" + arrTotal + ")";
-  let dNow = new Date();  
-  tNow = dNow.getTime();
-  tElapsed = tNow - tStart;
+    "(" + (arrTotal - arr.length) + "/" + arrTotal + ")"; // Status readout
+  let dNow = new Date();  // get now as a date. (When will then be now? Soon...)
+  tNow = dNow.getTime(); // get now as a time
+  tElapsed = tNow - tStart; // calculate elapsed time
   tMultiplier = arr.length / arrCurrent;
-  tEstimated = tElapsed * tMultiplier;
+  tEstimated = tElapsed * tMultiplier; // calculate estimated time remaining.
   pDebug.elt.innerHTML = `Time Elapsed: ${timeString(tElapsed)} </br> Estimated Time Remaining: ${timeString(tEstimated)} </br> Resolution: ${img.width}x${img.height} ${vDebug}`;
     
-  useArray();
+  useArray(); // Do the thing!
   
   //console.log(arr);
 }
 
+// separating milliseconds into years, days, etc, etc
 function timeString(theTimeInMil) {
   let finalString = "";
   let hourglass = theTimeInMil;
@@ -108,29 +108,42 @@ function timeString(theTimeInMil) {
   if (sec > 0) {finalString += sec + "secs ";}
   //hourglass remainder is milliseconds
   return finalString;
-  
 }
 
+//at any time you can save the canvas to a file.
 function Export() {
   save(brushSize + "_" + fileName + fileExt);
 }
 
+// Pause the process
 function butPause() {
   noLoop();
-  if (pStatus.elt.innerHTML == "Script Complete!") {return;}
+  if (pStatus.elt.innerHTML == "Script Complete!") {return;} // if the script is complete don't change the message.
   pStatus.elt.innerHTML = "Paused";
 }
 
+//Continue the process
 function butContinue() {
   loop();
   if (pStatus.elt.innerHTML == "Script Complete!") {return;}
   pStatus.elt.innerHTML = "Processing...";
 }
 
+// I honestly can't remember why I built this function
 function makeArray(xx, yy, rr, gg, bb, aa) {
   arr.push([xx,yy,rr,gg,bb,aa]);
 }
 
+/* 
+This is where the magic starts to happen.
+
+This function takes a random index from the array of pixels, 
+grabs the color and sends it to the paint function before 
+deleting the random point in the array.
+
+choosing a random point in the array keeps the picture from looking too uniform,
+and so the picture can be acceptibly done at around 50%
+*/
 function useArray() {
   //console.log(arr.length);
   if (arr.length > 0) {
@@ -155,7 +168,17 @@ function useArray() {
     noLoop();
   }
 }
+/*
+the rest of the magic.
 
+this takes an image of a brushstroke, 
+applies the color from the sampled place in the picture, 
+rotates by a random value,
+then applies it to the same location on the canvas.
+
+the random rotation improves the appearance, 
+and hides the same brush stroke being applied
+*/
 function paint(xx, yy, rr, gg, bb, aa) {
   //pDebug.elt.innerHTML = bb;
   for (let i = 0; i < brush.pixels.length; i+=4) {
